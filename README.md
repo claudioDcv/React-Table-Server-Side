@@ -6,7 +6,6 @@
 - extensible con `Plugins`
 - Tabla sin dependencias, excepto los plugins creados que son de uso opcional
 
-
 ## Inicialización
 
 - solo se debe declarar la propiedad `config` que contiene todo el objecto `JSON` con las configuraciones y opciones
@@ -36,52 +35,70 @@ render() {
 }
 ```
 
+## El importante Conector AJAX
+
+- Simplemente es una funcion que se encarga de los llamados al api, centralizando todos los `request` en esta function
+
+  ```javascript
+  import axios from 'axios'
+
+  const conector = (opt, callback, errorCallback, nonErrorAjax, onAfterSend) => {
+    axios(opt).then(
+      response => {
+        nonErrorAjax()
+        callback(response.data, response, opt)
+        onAfterSend(response)
+      },
+      response => errorCallback(response)
+    )
+  }
+
+  export default conector
+  ```
 
 ## Servicio
 
-  - **request**: al menos se debe enviar dos parametros
-  `http://127.0.0.1:8000/colors/?limit=4&offset=8`
-    - `limit`: cantidad maxima de elementos retornador por el servicio en cada consulta
-    - `offset`: desde que registro se estan retornado los elementos
-      - 0 para retornar desde el primer registros
-      - 4 para retornar desde el 5to hacia lo definido en `limit`
+- **request**: al menos se debe enviar dos parametros `http://127.0.0.1:8000/colors/?limit=4&offset=8`
 
-  - **response**: es importante que el servicio consultado retorne el siguiente tipo de objecto
+  - `limit`: cantidad maxima de elementos retornador por el servicio en cada consulta
+  - `offset`: desde que registro se estan retornado los elementos
 
-    ```json
-    {
-        "count": 13,
-        "results": [
-            {
-                "id": 1,
-                "name": "Blanco",
-                "natural_key": "blanco"
-            },
-            {
-                "id": 2,
-                "name": "Negro",
-                "natural_key": "negro"
-            },
-            {
-                "id": 3,
-                "name": "Cafe",
-                "natural_key": "cafe"
-            },
-            {
-                "id": 4,
-                "name": "Asabache",
-                "natural_key": "asabache"
-            }
-        ]
-    }
-    ```
+    - 0 para retornar desde el primer registros
+    - 4 para retornar desde el 5to hacia lo definido en `limit`
 
-    - **count**: cantidad total de elementos que existen el la tabla en la base de datos, o almenos lo que el `query` construido en el `backend` desea mostrar como maximo
+- **response**: es importante que el servicio consultado retorne el siguiente tipo de objecto
 
-    - **results**: `array` de elementos que va a mostrar en la table, y que son los que desea mapear en `columns`
+  ```json
+  {
+      "count": 13,
+      "results": [
+          {
+              "id": 1,
+              "name": "Blanco",
+              "natural_key": "blanco"
+          },
+          {
+              "id": 2,
+              "name": "Negro",
+              "natural_key": "negro"
+          },
+          {
+              "id": 3,
+              "name": "Cafe",
+              "natural_key": "cafe"
+          },
+          {
+              "id": 4,
+              "name": "Asabache",
+              "natural_key": "asabache"
+          }
+      ]
+  }
+  ```
 
+  - **count**: cantidad total de elementos que existen el la tabla en la base de datos, o almenos lo que el `query` construido en el `backend` desea mostrar como maximo
 
-
+  - **results**: `array` de elementos que va a mostrar en la table, y que son los que desea mapear en `columns`
 
 ## Parametros de la tabla
 
@@ -98,7 +115,8 @@ render() {
     },
     liveHeaders: () => ({}),
   }
-  ```  
+  ```
+
   - **url** `{string}`: ruta inicial del servicio, si se hace reset de la tabla, este sera el servicio con el que se reinicializara la tabla, tambien se puede agregar un recurso con parametros `host.com/api/v1/colors?limit=10&offset=0`
 
   - **method** `{string}`: metodo `HTTP` con el que se consume el servicio, ejemplo `GET`
@@ -123,6 +141,7 @@ render() {
     dataset: false,
   },
   ```
+
   - **initiaAjax** `{boolean} | optional`: activa el feedback del objecto `ajax` de el `head` de la tabla
 
   - **inputSearch** `{boolean} | optional`: activa el feedback de los elemetos input de el `head` de la tabla
@@ -131,8 +150,8 @@ render() {
 
   - **dataset** `{boolean} | optional`: activa el feedback del objecto `dataset` que sera lo que retorna el servicio
 
-
 - onBeforeSend `{function} | optional`: función `callback` que tiene como unico parametro la configuración que se envia como `request` al servicio
+
   ```javascript
   /*
   config: {
@@ -147,6 +166,7 @@ render() {
   ```
 
 - onAfterSend `{function} | optional`: función `callback` que tiene como unico parametro la respuesta que retorna el servicio
+
   ```javascript
   onAfterSend: (response) => { console.log(response); },
   ```
@@ -156,7 +176,6 @@ render() {
 - columns `{array}`
 
 - paginator `{object}`
-
 
 ## Implemantación
 
@@ -194,6 +213,7 @@ export default () => (
           method: 'GET',
           liveHeaders: () => ({}),
         },
+        conector: conector,
         debug: {
           inputSearch: true,
           paginator: true,
@@ -201,7 +221,7 @@ export default () => (
           dataset: true,
         },
         onBeforeSend: (e) => { console.log(e); },
-        onAfterSend: (e) => { console.log(e); },
+        onAfterSend: : (e) => { console.log(e); },
         table: {
           className: 'table table-hover table-sm',
           resetButton: {
@@ -212,7 +232,9 @@ export default () => (
             className: '',
             actions: {
               className: '',
-              component: e => (<div>{e.id}</div>),
+              component: e => (<button onClick={() => {
+                this.handlerAction(e.id);
+              }}>{e.id}</button>),
             },
           },
         },
